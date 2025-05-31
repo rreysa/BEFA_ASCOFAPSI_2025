@@ -1975,21 +1975,21 @@ $$
 ## Posterior Predictive Model Checks (PPMC)
 
 ```{r}
-load("blavaan objects/ppmc_objects.rdata")
+load("blavaan objects/ppmc_extra_model.rdata")
 load("blavaan objects/posterior_checks_2f.rdata")
 load("blavaan objects/posterior_checks_HS.rdata")
 ```
 
 ```{r}
 par(bg = "#f1f1f1")
-plot(ppmc_objects$posterior_checks_2f, element = "chisq")
+plot(ppmc_extra_model, element = "chisq")
 ```
 
 ## Posterior Predictive Model Checks (PPMC)
 
 ```{r}
 par(bg = "#f1f1f1")
-hist(ppmc_objects$posterior_checks_2f, element = "chisq")
+hist(ppmc_extra_model, element = "chisq")
 ```
 
 ## Posterior Predictive Model Checks (PPMC)
