@@ -1,0 +1,2241 @@
+---
+title: Introducción a la Psicometría Bayesiana
+subtitle: Aplicación al Análisis Factorial Confirmatorio
+format: 
+  metropolis-beamer-revealjs:
+    theme: style.scss
+    incremental: true
+header-logo: images/UAM_logo.png
+header-logo-link: "https://www.uam.es/uam/en/inicio"
+slide-number: "c"
+author:
+  - name: Ricardo Rey-Sáez
+    orcid: 0000-0001-6739-2035
+    email: ricardoreysaez95@gmail.com
+    affiliations: Universidad Autónoma de Madrid
+date: last-modified
+bibliography: references.bib
+embed-resources: true
+execute:
+  cache: true
+---
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+library(ggplot2)
+library(dplyr)
+library(lavaan)
+library(blavaan)
+library(bayesplot)
+par(bg = "#f1f1f1")
+```
+
+
+# Me disculpo de antemano por explicar cosas que ya conocéis y por dar por sentado otras cosas que todavía no conocéis.
+
+# ¿Qué es un modelo?
+
+## ¿Qué es un modelo?
+
+![](images/modeling1.png)
+
+## ¿Qué es un modelo?
+
+![](images/modeling2.png)
+
+## ¿Qué es un modelo?
+
+![](images/modeling3.png)
+
+## ¿Qué es un modelo?
+
+-   Es habitual expresar un **modelo de regresión lineal** como
+
+::: fragment
+
+$$
+\color{seagreen}{Y_i} = \color{#0197FD}{\beta_0} + \color{#0197FD}{\beta_1}\cdot \color{darkorange}{X_i} + \varepsilon_i,\quad\text{donde}\quad\varepsilon_i\sim\color{#7E57C2}{\mathcal{N}}\left(\color{#9a2515}\mu =0,\, \color{#9a2515}{\sigma} = \color{#0197FD}{\sigma_\varepsilon}\right)
+$$
+:::
+
+-   Esto **es idéntico** a
+
+::: fragment
+
+$$
+\color{seagreen}{Y_i} \sim \color{#7E57C2}{\mathcal{N}}\left(\color{#9a2515}{\mu}=\color{#0197FD}{\beta_0} + \color{#0197FD}{\beta_1}\cdot \color{darkorange}{X_i} ,\,\color{#9a2515}{\sigma} = \color{#0197FD}{\sigma_\varepsilon} \right)
+$$
+
+:::
+
+-   Por tanto, el **modelo estadístico** cuenta con:
+    1.   Una [**variable dependiente**]{style="color:seagreen;"} y una [**distribución de probabilidad**]{style="color:#7E57C2;"},
+    2.   Los [**parámetros**]{style="color:#9a2515;"} de la [**distribución de probabilidad**]{style="color:#7E57C2;"} seleccionada.
+    3.   Los [**parámetros estimados**]{style="color:#0197FD;"} que, a veces, dependen de otras [**variables observables**]{style="color:darkorange;"} o [**latentes**]{.underline style="color:darkorange;"}
+
+# Las dos teorías de los tests
+
+## Teoría clásica de los tests
+
+La **ecuación fundamental** de la Psicometría:
+
+::: fragment
+
+$$
+X = V + E
+$$
+
+::: 
+
+:::: {.columns}
+
+::: {.column width="33%"}
+
+- $X$: Observada
+
+:::
+
+::: {.column width="33%"}
+
+- $V$: Verdadera
+
+:::
+
+::: {.column width="33%"}
+
+- $E$: Error aleatorio
+
+:::
+
+::::
+
+- La puntuación verdadera es **el valor esperado (i.e., la media)** de la puntuación observada.
+
+::: fragment
+
+$$
+\mathbb{E}[X] = V
+$$
+
+:::
+
+- Aunque $X$, $V$ y $E$ son variables, la TCT **no especifica ninguna distribución para ninguna de ellas.**
+
+## Teoría clásica de los tests
+
+La **ecuación fundamental** de la Psicometría:
+
+
+$$
+X = V + E
+$$
+
+:::::: nonincremental
+
+:::: {.columns}
+
+::: {.column width="33%"}
+
+- $X$: Observada
+
+:::
+
+::: {.column width="33%"}
+
+- $V$: Verdadera
+
+:::
+
+::: {.column width="33%"}
+
+- $E$: Error aleatorio
+
+:::
+
+::::
+
+::::::
+
+::: fragment
+
+>The weakness of the assumptions of the classical model increases the applicability of this model but restricts its usefulness. [**The classical test theory model is basically a nonparametric estimation model**]{.underline}. [...] The more classical testing procedures, however, requires parametric assumptions not privided by this model [@Novick1965TheAA]
+
+::: 
+
+
+## Teoría clásica de los tests
+
+La **ecuación fundamental** de la Psicometría:
+
+$$
+X = V + E
+$$
+
+:::::: nonincremental
+
+:::: {.columns}
+
+::: {.column width="33%"}
+
+- $X$: Observada
+
+:::
+
+::: {.column width="33%"}
+
+- $V$: Verdadera
+
+:::
+
+::: {.column width="33%"}
+
+- $E$: Error aleatorio
+
+:::
+
+::::
+
+- Se asume que $E\sim\color{#7E57C2}{\mathcal{N}}(\color{#9a2515}\mu = 0,\color{#9a2515}\sigma = \color{#0197FD}{\sigma_E})$
+
+::::::
+
+::: fragment
+
+$$
+\color{seagreen}{X} \sim \color{#7E57C2}{\mathcal{N}}\left(\color{#9a2515}{\mu}=\color{#0197FD}{V} ,\,\color{#9a2515}{\sigma} = \color{#0197FD}{\sigma_E} \right)
+$$
+
+::: 
+
+- Sin embargo, **no se especifica** la distribución de $\color{#0197FD}{V}$. 
+
+## Teoría moderna de los tests
+
+Evolución natural de la TCT:
+
+1. **Modelos factoriales** [@spearman1904general; @Thurstone1947; @joreskog1969general]
+2. **Teoría de respuesta al Item** [@Lord1968]
+
+::: fragment
+
+Del valor esperado ($\mathbb{E}[X]$) a la causa latente ($\eta$)
+
+:::
+
+\ 
+
+::: fragment
+
+### El modelo factorial confirmatorio
+
+::: 
+
+::: fragment
+
+La respuesta de la persona $i$ a un ítem se distribuye según
+:::
+
+::: fragment
+
+$$
+\color{seagreen}{Y_i} = \color{#0197FD}{\beta_0} + \color{#0197FD}{\beta_1}\cdot \color{darkorange}{X_i} + \varepsilon_i,\quad\text{donde}\quad\varepsilon_i\sim\color{#7E57C2}{\mathcal{N}}\left(\color{#9a2515}\mu =0,\, \color{#9a2515}{\sigma} = \color{#0197FD}{\sigma_\varepsilon}\right)
+$$
+
+::: 
+
+
+## Teoría moderna de los tests
+
+Evolución natural de la TCT:
+
+::: nonincremental
+
+1. **Modelos factoriales** [@spearman1904general; @Thurstone1947; @joreskog1969general]
+2. **Teoría de respuesta al Item** [@Lord1968]
+
+::: 
+
+Del valor esperado ($\mathbb{E}[X]$) a la causa latente ($\eta$)
+
+
+\ 
+
+
+### El modelo factorial confirmatorio
+
+
+
+La respuesta de la persona $i$ a un ítem se distribuye según
+
+
+$$
+\color{seagreen}{Y_i} \sim \color{#7E57C2}{\mathcal{N}}\left(\color{#9a2515}{\mu}=\color{#0197FD}{\beta_0} + \color{#0197FD}{\beta_1}\cdot \color{darkorange}{X_i} ,\,\color{#9a2515}{\sigma} = \color{#0197FD}{\sigma_\varepsilon} \right)
+$$
+
+## Teoría moderna de los tests
+
+$$
+\color{seagreen}{Y_i} \sim \color{#7E57C2}{\mathcal{N}}\left(\color{#9a2515}{\mu}=\color{#0197FD}{\beta_0} + \color{#0197FD}{\beta_1}\cdot \color{darkorange}{X_i} ,\,\color{#9a2515}{\sigma} = \color{#0197FD}{\sigma_\varepsilon} \right)
+$$
+
+-   Sin embargo, en psicometría:
+    -   se asume que la variable $X$ [**no es observable**]{.underline}; es una **variable latente**. Se suele representar con la letra griega $\eta$.
+    -   suelen utilizarse las letras griegas $\nu$ y $\lambda$ en lugar de $\beta_0$ y $\beta_1$.
+-   Por eso, [**el mismo modelo**]{.underline} se representa como
+
+::: fragment
+$$
+\color{seagreen}{Y_i} = \color{#0197FD}{\nu} + \color{#0197FD}{\lambda} \cdot \color{darkorange}{\eta_i} + \varepsilon_i,\quad\text{donde}\quad\varepsilon_i\sim\color{#7E57C2}{\mathcal{N}}\left(\color{#9a2515}\mu =0,\, \color{#9a2515}{\sigma} = \color{#0197FD}{\theta}\right)
+$$
+:::
+
+
+## Teoría moderna de los tests
+
+$$
+\color{seagreen}{Y_i} \sim \color{#7E57C2}{\mathcal{N}}\left(\color{#9a2515}{\mu}=\color{#0197FD}{\beta_0} + \color{#0197FD}{\beta_1}\cdot \color{darkorange}{X_i} ,\,\color{#9a2515}{\sigma} = \color{#0197FD}{\sigma_\varepsilon} \right)
+$$
+
+::: nonincremental
+
+-   Sin embargo, en psicometría:
+    -   se asume que la variable $X$ [**no es observable**]{.underline}; es una **variable latente**. Se suele representar con la letra griega $\eta$.
+    -   suelen utilizarse las letras griegas $\nu$ y $\lambda$ en lugar de $\beta_0$ y $\beta_1$.
+-   Por eso, [**el mismo modelo**]{.underline} se representa como
+
+:::
+
+
+$$
+\color{seagreen}{Y_i} \sim \color{#7E57C2}{\mathcal{N}}\left(\color{#9a2515}{\mu}=\color{#0197FD}{\nu} + \color{#0197FD}{\lambda} \cdot \color{darkorange}{\eta_i} ,\,\color{#9a2515}{\sigma} = \color{#0197FD}{\theta} \right)
+$$
+
+## Modelo factorial confirmatorio
+
+$$
+\color{seagreen}{Y_i} \sim \color{#7E57C2}{\mathcal{N}}\left(\color{#9a2515}{\mu}=\color{#0197FD}{\nu} + \color{#0197FD}{\lambda} \cdot \color{darkorange}{\eta_i} ,\,\color{#9a2515}{\sigma} = \color{#0197FD}{\theta} \right)
+$$
+
+-   $\color{seagreen}{Y_i}$ es **una medida imperfecta** de una variable no observable, $\color{darkorange}{\eta_i}$.
+-   $\varepsilon_i$ recibe el nombre de **unicidad** (i.e., varianza no explicada).
+    - Una parte de la **unicidad** es el **error de medida**
+-   Es habitual contar con **varias medidas de la variable no observable**.
+
+::: fragment
+$$
+\begin{aligned}
+& Y_{i1} = \nu_1 + \lambda_1 \cdot \eta_i + \varepsilon_{i1},\quad\text{donde}\quad\varepsilon_{i1}\sim\mathcal{N}\left(\mu =0,\, \sigma = \theta_1\right)
+\end{aligned}
+$$
+:::
+
+
+## Modelo factorial confirmatorio
+
+$$
+\color{seagreen}{Y_i} \sim \color{#7E57C2}{\mathcal{N}}\left(\color{#9a2515}{\mu}=\color{#0197FD}{\nu} + \color{#0197FD}{\lambda} \cdot \color{darkorange}{\eta_i} ,\,\color{#9a2515}{\sigma} = \color{#0197FD}{\theta} \right)
+$$
+
+::: nonincremental
+
+-   $\color{seagreen}{Y_i}$ es **una medida imperfecta** de una variable no observable, $\color{darkorange}{\eta_i}$.
+-   $\varepsilon_i$ recibe el nombre de **unicidad** (i.e., varianza no explicada).
+    - Una parte de la **unicidad** es el **error de medida**
+-   Es habitual contar con **varias medidas de la variable no observable**.
+
+:::
+
+$$
+\begin{aligned}
+& Y_{i1} = \nu_1 + \lambda_1 \cdot \eta_i + \varepsilon_{i1},\quad\text{donde}\quad\varepsilon_{i1}\sim\mathcal{N}\left(\mu =0,\, \sigma = \theta_1\right)\\
+& Y_{i2} = \nu_2 + \lambda_2 \cdot \eta_i + \varepsilon_{i2},\quad\text{donde}\quad\varepsilon_{i2}\sim\mathcal{N}\left(\mu =0,\, \sigma = \theta_2\right)
+\end{aligned}
+$$
+
+## Modelo factorial confirmatorio
+
+$$
+\color{seagreen}{Y_i} \sim \color{#7E57C2}{\mathcal{N}}\left(\color{#9a2515}{\mu}=\color{#0197FD}{\nu} + \color{#0197FD}{\lambda} \cdot \color{darkorange}{\eta_i} ,\,\color{#9a2515}{\sigma} = \color{#0197FD}{\theta} \right)
+$$
+
+::: nonincremental
+
+-   $\color{seagreen}{Y_i}$ es **una medida imperfecta** de una variable no observable, $\color{darkorange}{\eta_i}$.
+-   $\varepsilon_i$ recibe el nombre de **unicidad** (i.e., varianza no explicada).
+    - Una parte de la **unicidad** es el **error de medida**
+-   Es habitual contar con **varias medidas de la variable no observable**.
+
+:::
+
+$$
+\begin{aligned}
+& Y_{i1} = \nu_1 + \lambda_1 \cdot \eta_i + \varepsilon_{i1},\quad\text{donde}\quad\varepsilon_{i1}\sim\mathcal{N}\left(\mu =0,\, \sigma = \theta_1\right)\\
+& Y_{i2} = \nu_2 + \lambda_2 \cdot \eta_i + \varepsilon_{i2},\quad\text{donde}\quad\varepsilon_{i2}\sim\mathcal{N}\left(\mu =0,\, \sigma = \theta_2\right)\\
+& Y_{i3} = \nu_3 + \lambda_3 \cdot \eta_i + \varepsilon_{i3},\quad\text{donde}\quad\varepsilon_{i3}\sim\mathcal{N}\left(\mu =0,\, \sigma = \theta_3\right)\\
+\end{aligned}
+$$
+
+## Modelo factorial confirmatorio
+
+$$
+\color{seagreen}{Y_i} \sim \color{#7E57C2}{\mathcal{N}}\left(\color{#9a2515}{\mu}=\color{#0197FD}{\nu} + \color{#0197FD}{\lambda} \cdot \color{darkorange}{\eta_i} ,\,\color{#9a2515}{\sigma} = \color{#0197FD}{\theta} \right)
+$$
+
+::: nonincremental
+
+-   $\color{seagreen}{Y_i}$ es **una medida imperfecta** de una variable no observable, $\color{darkorange}{\eta_i}$.
+-   $\varepsilon_i$ recibe el nombre de **unicidad** (i.e., varianza no explicada).
+    - Una parte de la **unicidad** es el **error de medida**
+-   Es habitual contar con **varias medidas de la variable no observable**.
+
+:::
+
+$$
+\begin{aligned}
+& Y_{i1} = \nu_1 + \lambda_1 \cdot \color{darkorange}{\eta_i} + \varepsilon_{i1},\quad\text{donde}\quad\varepsilon_{i1}\sim\mathcal{N}\left(\mu =0,\, \sigma = \theta_1\right)\\
+& Y_{i2} = \nu_2 + \lambda_2 \cdot \color{darkorange}{\eta_i} + \varepsilon_{i2},\quad\text{donde}\quad\varepsilon_{i2}\sim\mathcal{N}\left(\mu =0,\, \sigma = \theta_2\right)\\
+& Y_{i3} = \nu_3 + \lambda_3 \cdot \color{darkorange}{\eta_i} + \varepsilon_{i3},\quad\text{donde}\quad\varepsilon_{i3}\sim\mathcal{N}\left(\mu =0,\, \sigma = \theta_3\right)\\
+\end{aligned}
+$$
+
+## Modelo factorial confirmatorio
+
+$$
+\color{seagreen}{Y_i} \sim \color{#7E57C2}{\mathcal{N}}\left(\color{#9a2515}{\mu}=\color{#0197FD}{\nu} + \color{#0197FD}{\lambda} \cdot \color{darkorange}{\eta_i} ,\,\color{#9a2515}{\sigma} = \color{#0197FD}{\theta} \right)
+$$
+
+::: nonincremental
+
+-   $\color{seagreen}{Y_i}$ es **una medida imperfecta** de una variable no observable, $\color{darkorange}{\eta_i}$.
+-   $\varepsilon_i$ recibe el nombre de **unicidad** (i.e., varianza no explicada).
+    - Una parte de la **unicidad** es el **error de medida**
+-   Es habitual contar con **varias medidas de la variable no observable**.
+
+:::
+
+::: fragment
+
+$$
+Y_{i\color{red}j} = \nu_\color{red}j + \lambda_\color{red}j \cdot \eta_i + \varepsilon_{i\color{red}j},\quad\text{donde}\quad\varepsilon_{i\color{red}j}\sim\mathcal{N}\left(\mu =0,\, \sigma = \theta_\color{red}j\right)
+$$
+
+:::
+
+
+## Modelo factorial confirmatorio
+
+$$
+\color{seagreen}{Y_{i\color{black}{j}}} \sim \color{#7E57C2}{\mathcal{N}}\left(\color{#9a2515}{\mu}=\color{#0197FD}{\nu_\color{black}j} + \color{#0197FD}{\lambda_\color{black}j} \cdot \color{darkorange}{\eta_i} ,\,\color{#9a2515}{\sigma} = \color{#0197FD}{\theta_\color{black}j} \right)
+$$
+
+::: nonincremental
+
+-   $\color{seagreen}{Y_i}$ es **una medida imperfecta** de una variable no observable, $\color{darkorange}{\eta_i}$.
+-   $\varepsilon_i$ recibe el nombre de **unicidad** (i.e., varianza no explicada).
+    - Una parte de la **unicidad** es el **error de medida**
+-   Es habitual contar con **varias medidas de la variable no observable**.
+
+:::
+
+
+$$
+Y_{i\color{red}j} = \nu_\color{red}j + \lambda_\color{red}j \cdot \eta_i + \varepsilon_{i\color{red}j},\quad\text{donde}\quad\varepsilon_{i\color{red}j}\sim\mathcal{N}\left(\mu =0,\, \sigma = \theta_\color{red}j\right)
+$$
+
+
+- ¿Cómo ajustamos un modelo de regresión con **una variable invisible**?
+
+- Respuesta: **sorprendentemente**, [**no la necesitamos.**]{.underline}
+
+## Modelo factorial confirmatorio
+
+- Los psicómetras prefieren la **versión matricial** del modelo.
+
+:::: {style="margin-top: -30px; margin-bottom: -20px"}
+
+::: fragment
+$$
+\underbrace{
+\begin{bmatrix}
+Y_{i1}\\
+Y_{i2}\\
+Y_{i3}\\
+Y_{i4}\\
+Y_{i5}\\
+Y_{i6}\\
+\end{bmatrix}}_{\textstyle{\mathbf{y}_i}} = 
+\underbrace{
+\begin{bmatrix}
+\nu_{1}\\
+\nu_{2}\\
+\nu_{3}\\
+\nu_{4}\\
+\nu_{5}\\
+\nu_{6}\\
+\end{bmatrix}}_{\textstyle{\boldsymbol{\nu}}} + 
+\underbrace{
+\begin{bmatrix}
+\lambda_{11} & 0\\
+\lambda_{21} & 0\\
+\lambda_{31} & 0\\
+0 & \lambda_{42}\\
+0 & \lambda_{52}\\
+0 & \lambda_{62}\\
+\end{bmatrix}}_{\textstyle{\mathbf{\Lambda}}} \times 
+\underbrace{
+\begin{bmatrix}
+\eta_{i1}\\
+\eta_{i2}\\
+\end{bmatrix}}_{\textstyle{\boldsymbol{\eta}_i}} + 
+\underbrace{
+\begin{bmatrix}
+\varepsilon_{1}\\
+\varepsilon_{2}\\
+\varepsilon_{3}\\
+\varepsilon_{4}\\
+\varepsilon_{5}\\
+\varepsilon_{6}\\
+\end{bmatrix}}_{\textstyle{\boldsymbol{\varepsilon}_i}}
+$$
+:::
+
+::::
+
+- Hay una versión alternativa del modelo estadístico utilizando estas matrices.
+- Esa versión **no necesita las variables latentes**
+
+## Modelo factorial confirmatorio
+
+Finalmente, el **modelo estadístico** del factor común es
+
+::: fragment
+
+$$
+\color{seagreen}{\mathbf{y}_i}  \sim \color{#7E57C2}{\mathcal{MVN}}\left(\color{#9a2515}{\boldsymbol\mu} = \color{#0197FD}{\boldsymbol\nu} + \color{#0197FD}{\mathbf{\Lambda}} \cdot \color{#0197FD}{\boldsymbol{\alpha}},\,\color{#9a2515}{\mathbf{\Sigma}} =  \color{#0197FD}{\mathbf{\Lambda}}\cdot\color{#0197FD}{\mathbf\Psi}\cdot\color{#0197FD}{\mathbf{\Lambda}^\prime} + \color{#0197FD}{\mathbf{\Theta}}\right)
+$$
+:::
+
+\
+
+:::: {style="margin-top: -30px; margin-bottom: -20px"}
+
+::: fragment
+$$
+\underbrace{
+\begin{bmatrix}
+Y_{i1}\\
+Y_{i2}\\
+Y_{i3}\\
+Y_{i4}\\
+Y_{i5}\\
+Y_{i6}\\
+\end{bmatrix}}_{\textstyle{\mathbf{y}_i}} = 
+\underbrace{
+\begin{bmatrix}
+\nu_{1}\\
+\nu_{2}\\
+\nu_{3}\\
+\nu_{4}\\
+\nu_{5}\\
+\nu_{6}\\
+\end{bmatrix}}_{\textstyle{\boldsymbol{\nu}}} + 
+\underbrace{
+\begin{bmatrix}
+\lambda_{11} & 0\\
+\lambda_{21} & 0\\
+\lambda_{31} & 0\\
+0 & \lambda_{42}\\
+0 & \lambda_{52}\\
+0 & \lambda_{62}\\
+\end{bmatrix}}_{\textstyle{\mathbf{\Lambda}}} \times 
+\underbrace{
+\begin{bmatrix}
+\eta_{i1}\\
+\eta_{i2}\\
+\end{bmatrix}}_{\textstyle{\boldsymbol{\eta}_i}} + 
+\underbrace{
+\begin{bmatrix}
+\varepsilon_{1}\\
+\varepsilon_{2}\\
+\varepsilon_{3}\\
+\varepsilon_{4}\\
+\varepsilon_{5}\\
+\varepsilon_{6}\\
+\end{bmatrix}}_{\textstyle{\boldsymbol{\varepsilon}_i}}
+$$
+:::
+
+::::
+
+
+## Modelo factorial confirmatorio
+
+Finalmente, el **modelo estadístico** del factor común es
+
+$$
+\mathbf{y}_i  \sim \mathcal{MVN}\left(\boldsymbol\mu = \color{#0197FD}{\boldsymbol\nu} + \color{#0197FD}{\mathbf{\Lambda}} \cdot \boldsymbol{\alpha},\,\mathbf{\Sigma} =  \mathbf{\color{#0197FD}{\Lambda}}\cdot\mathbf{\Psi}\cdot\color{#0197FD}{\mathbf{\Lambda^\prime}} + \mathbf{\Theta}\right)
+$$
+
+
+\
+
+:::: {style="margin-top: -30px; margin-bottom: -20px"}
+
+$$
+\underbrace{
+\begin{bmatrix}
+Y_{i1}\\
+Y_{i2}\\
+Y_{i3}\\
+Y_{i4}\\
+Y_{i5}\\
+Y_{i6}\\
+\end{bmatrix}}_{\textstyle{\mathbf{y}_i}} = 
+\underbrace{
+\begin{bmatrix}
+\nu_{1}\\
+\nu_{2}\\
+\nu_{3}\\
+\nu_{4}\\
+\nu_{5}\\
+\nu_{6}\\
+\end{bmatrix}}_{\textstyle{\color{#0197FD}{\boldsymbol{\nu}}}} + 
+\underbrace{
+\begin{bmatrix}
+\lambda_{11} & 0\\
+\lambda_{21} & 0\\
+\lambda_{31} & 0\\
+0 & \lambda_{42}\\
+0 & \lambda_{52}\\
+0 & \lambda_{62}\\
+\end{bmatrix}}_{\textstyle{\color{#0197FD}{\mathbf{\Lambda}}}} \times 
+\underbrace{
+\begin{bmatrix}
+\eta_{i1}\\
+\eta_{i2}\\
+\end{bmatrix}}_{\textstyle{\boldsymbol{\eta}_i}} + 
+\underbrace{
+\begin{bmatrix}
+\varepsilon_{1}\\
+\varepsilon_{2}\\
+\varepsilon_{3}\\
+\varepsilon_{4}\\
+\varepsilon_{5}\\
+\varepsilon_{6}\\
+\end{bmatrix}}_{\textstyle{\boldsymbol{\varepsilon}_i}}
+$$
+
+::::
+
+## Modelo factorial confirmatorio
+
+Finalmente, el **modelo estadístico** del factor común es
+
+
+$$
+\mathbf{y}_i  \sim \mathcal{MVN}\left(\boldsymbol\mu = \boldsymbol\nu + \mathbf{\Lambda} \cdot \color{royalblue}{\boldsymbol{\alpha}},\,\mathbf{\Sigma} =  \mathbf{\Lambda\cdot\color{royalblue}{\mathbf\Psi}\cdot\mathbf{\Lambda}^\prime} + \mathbf{\color{royalblue}{\mathbf{\Theta}}}\right)
+$$
+
+
+- $\color{royalblue}{\boldsymbol{\alpha}}$ es el vector con las medias de $\boldsymbol{\eta}_i$
+- $\color{royalblue}{\mathbf\Psi}$ es la matriz de covarianzas de $\boldsymbol{\eta}_i$
+- $\color{royalblue}{\mathbf\Theta}$ es la matriz de covarianzas de $\boldsymbol{\varepsilon}_i$
+
+## Modelo factorial confirmatorio
+
+Finalmente, el **modelo estadístico** del factor común es
+
+$$
+\color{seagreen}{\mathbf{y}_i}  \sim \color{#7E57C2}{\mathcal{MVN}}\left(\color{#9a2515}{\boldsymbol\mu} = \color{#0197FD}{\boldsymbol\nu} + \color{#0197FD}{\mathbf{\Lambda}} \cdot \color{#0197FD}{\boldsymbol{\alpha}},\,\color{#9a2515}{\mathbf{\Sigma}} =  \color{#0197FD}{\mathbf{\Lambda}}\cdot\color{#0197FD}{\mathbf\Psi}\cdot\color{#0197FD}{\mathbf{\Lambda}^\prime} + \color{#0197FD}{\mathbf{\Theta}}\right)
+$$
+
+::: nonincremental
+- $\boldsymbol{\alpha}$ es el vector con las medias de $\boldsymbol{\eta}_i$
+- $\mathbf\Psi$ es la matriz de covarianzas de $\boldsymbol{\eta}_i$
+- $\mathbf\Theta$ es la matriz de covarianzas de $\boldsymbol{\varepsilon}_i$
+:::
+- $\color{#0197FD}{\boldsymbol\nu} + \color{#0197FD}{\mathbf{\Lambda}} \cdot \color{#0197FD}{\boldsymbol{\alpha}}$ se denomina _**model-implied mean vector**_
+- $\color{#0197FD}{\mathbf{\Lambda}}\cdot\color{#0197FD}{\mathbf\Psi}\cdot\color{#0197FD}{\mathbf{\Lambda}^\prime} + \color{#0197FD}{\mathbf{\Theta}}$ se denomina _**model-implied covariance matrix**_
+
+::: fragment
+
+::: {.callout type='alert'}
+
+## La variable latente
+
+¡No es necesario tener $\boldsymbol{\eta}_i$ para estimar el modelo! Nos basta con tener su media ($\boldsymbol{\alpha}$) y varianza ($\mathbf\Psi$)
+:::
+
+::: 
+
+## Modelo factorial confirmatorio
+
+Finalmente, el **modelo estadístico** del factor común es
+
+$$
+\color{seagreen}{\mathbf{y}_i}  \sim \color{#7E57C2}{\mathcal{MVN}}\left(\color{#9a2515}{\boldsymbol\mu} = \color{#0197FD}{\boldsymbol\nu} ,\,\color{#9a2515}{\mathbf{\Sigma}} =  \color{#0197FD}{\mathbf{\Lambda}}\cdot\color{#0197FD}{\mathbf\Psi}\cdot\color{#0197FD}{\mathbf{\Lambda}^\prime} + \color{#0197FD}{\mathbf{\Theta}}\right)
+$$
+
+::: nonincremental
+- $\boldsymbol{\alpha}$ es el vector con las medias de $\boldsymbol{\eta}_i$
+- $\mathbf\Psi$ es la matriz de covarianzas de $\boldsymbol{\eta}_i$
+- $\mathbf\Theta$ es la matriz de covarianzas de $\boldsymbol{\varepsilon}_i$
+:::
+
+::: nonincremental
+- $\color{#0197FD}{\boldsymbol\nu} + \color{#0197FD}{\mathbf{\Lambda}} \cdot \color{#0197FD}{\boldsymbol{\alpha}}$ se denomina _**model-implied mean vector**_
+- $\color{#0197FD}{\mathbf{\Lambda}}\cdot\color{#0197FD}{\mathbf\Psi}\cdot\color{#0197FD}{\mathbf{\Lambda}^\prime} + \color{#0197FD}{\mathbf{\Theta}}$ se denomina _**model-implied covariance matrix**_
+:::
+
+::: fragment
+
+$$
+\text{Cov}\left(\color{seagreen}{\mathbf{Y}}\right) = \color{#0197FD}{\mathbf{\Lambda}}\cdot\color{#0197FD}{\mathbf\Psi}\cdot\color{#0197FD}{\mathbf{\Lambda}^\prime} + \color{#0197FD}{\mathbf{\Theta}}
+$$
+
+::: 
+
+# La lógica de la estadística Bayesiana
+
+# ¿Qué edad tenéis?
+
+## La edad según el frecuentismo
+
+-   La media de edad es **una cantidad fija, pero desconocida** ($\mu_{\text{edad}}$).
+-   El objetivo es estimar $\mu_{\text{edad}}$ **usando una muestra aleatoria.**
+    1.  **Elegimos un estimador**: la media muestral.
+    2.  **Cuantificamos la incertidumbre**: el error típico de la media (SE).
+    3.  Usamos el SE y construimos un **intervalo de confianza** (IC) para inferir el valor de $\mu_{\text{edad}}$.
+-   Un frecuentista concluirá:
+    -   La media de edad estimada es $\hat\mu_{\text{edad}}$ con un IC de $[a,b]$.
+    -   Si **repetimos este experimento [infinitas veces]{.underline}**, el IC contendrá el valor de $\mu_{\text{edad}}$ en el 95% de los casos.
+
+## La edad según el Bayesiano
+
+-   La media de edad es **una variable aleatoria** porque incluimos **nuestro conocimiento actual sobre su valor [con una distribución de probabilidad.]{.underline}**
+-   El objetivo es combinar (1) los datos y (2) lo que creemos.
+    1.  Elegimos una **distribución a priori** para $\mu_{\text{edad}}$: $\Pr(\mu_{\text{edad}})$
+
+::::::: fragment
+:::::: callout-tip
+## ¿Cómo incluimos nuestro conocimiento en un modelo estadístico?
+
+::: fragment
+Si creo que la media de edad está **entre 22 y 26 años**, puedo expresar esta creencia usando una distribución de probabilidad. Por ejemplo, **la distribución normal**:
+:::
+
+::: fragment
+$$
+\Pr\left(\mu_{\text{edad}}\right)\quad\Longrightarrow\quad\mu_{\text{edad}}\sim\mathcal{N}\left(\color{royalblue}{\mu = 24},\,\color{firebrick}{\sigma = 1}\right)
+$$
+:::
+
+::: fragment
+
+Esto significa que, **dado mi conocimiento actual**, espero que la media de edad esté en torno a [**24 años**]{style="color:royalblue;"} y, además, que la probabilidad de que la media esté entre 22 y 26 años es del 95%: 
+
+- Intervalo de credibilidad: $\color{royalblue}{\mu}\pm1.96\cdot\color{firebrick}{\sigma}\Longrightarrow\color{royalblue}{24}\pm1.96\times\color{firebrick}1\approx[22, 26]$
+
+:::
+::::::
+:::::::
+
+## La edad según el Bayesiano
+
+::: nonincremental
+
+-   La media de edad es **una variable aleatoria** porque incluimos **nuestro conocimiento actual sobre su valor [con una distribución de probabilidad.]{.underline}**
+-   El objetivo es combinar (1) los datos y (2) lo que creemos.
+    1.  Elegimos una **distribución a priori** para $\mu_{\text{edad}}$: $\Pr(\mu_{\text{edad}})$
+    2.  El **Teorema de Bayes** combina la prior y los datos
+
+:::
+
+::: fragment
+
+$$
+\underbrace{\Pr\left(\mu_{\text{edad}} \mid D\right)}_{\textstyle{\text{Posterior}}} \propto \underbrace{\Pr\left(D \mid \mu_{\text{edad}}\right)}_{\textstyle{\text{Verosimilitud}}} \times \underbrace{\Pr(\mu_{\text{edad}})}_{\textstyle{\text{Prior}}}
+$$
+:::
+
+## La edad según el Bayesiano
+
+::: nonincremental
+
+-   La media de edad es **una variable aleatoria** porque incluimos **nuestro conocimiento actual sobre su valor [con una distribución de probabilidad.]{.underline}**
+-   El objetivo es combinar (1) los datos y (2) lo que creemos.
+    1.  Elegimos una **distribución a priori** para $\mu_{\text{edad}}$: $\Pr(\mu_{\text{edad}})$
+    2.  El **Teorema de Bayes** combina la prior y los datos
+    3.  Esta combinación es la **distribución posterior.**
+    
+:::
+
+-   Un bayesiano concluirá:
+    -   Tras ver los datos, mi antigua creencia (**prior**) sobre $\mu_{\text{edad}}$ se ha actualizado (**posterior**) .
+    -   El **intervalo de credibilidad** al 95% nos dice que **hay un 95% de probabilidad** de que $\mu_{\text{edad}}$ esté en $[a,b]$
+
+# Si lanzo una moneda al aire 100 veces, **¿en cuántas de ellas saldrá cara?**
+
+## Probabilidad como información
+
+### Frecuentismo
+
+- La probabilidad de que salga cara es del 50%.
+
+- Esta probabilidad **es objetiva**: 
+  - Número de veces que sale cara en **infinitas e idénticas repeticiones de un experimento (i.e., el lanzamiento de la moneda).**
+
+- **La probabilidad es una propiedad "real" del experimento**.
+
+::::::: fragment
+:::::: callout-tip
+
+## Definición de probabilidad Frecuentista
+
+::: fragment
+
+La probabilidad es la **frecuencia relativa esperada** de un evento. En otras palabras: es la **proporción de veces que ocurriría ese evento si repitiéramos el experimento** [**un número infinito de veces**]{.underline}.
+
+:::
+
+::::::
+:::::::
+
+## Probabilidad como información
+
+### Bayesiano
+
+- **La probabilidad** de que salga cara **depende de cuánto sé** sobre el proceso de lanzamiento.
+- Si **no sé nada**, diré que **ambas cosas son equiprobables** (50%)
+- A medida que **acumulo datos** sobre el lanzamiento (ángulo, fuerza, inclinación…), **ajusto mi probabilidad** acorde al nuevo conocimiento.
+- Con **información perfecta** el resultado está **determinado**.
+
+::::::: fragment
+:::::: callout-tip
+## Definición de probabilidad Bayesiana
+
+::: fragment
+
+La probabilidad es una medida que refleja nuestra **cantidad de información**. **No es una propiedad del mundo, sino** [**una herramienta mental**]{.underline} que usamos para representar nuestra incertidumbre sobre lo que sabemos o no sabemos.
+
+:::
+
+::::::
+:::::::
+
+# Algo es probable solo mientras me falta información. Con conocimiento completo, la incertidumbre desaparece — y con ella, la necesidad de hablar de probabilidad.
+
+# Diferencias entre Análisis Factorial Confirmatorio frecuentista y Bayesiano
+
+## Método de estimación
+
+### Frecuentismo
+
+- Múltiples métodos:
+  - Máxima verosimilitud (clásica, _full-information_, robusta...)
+  - Mínimos cuadrados (ponderados, sin ponderar, robustos...)
+- En todos ellos busco **un único valor para cada parámetro**
+
+
+### Bayesiano
+- Estimación basada en simulación: **Markov Chain Monte Carlo (MCMC)**
+- Para cada parámetro obtenemos **toda una distribución**.
+- Suele resumirse esa distribución con la media, la mediana...
+- Múltiples algoritmos: Gibbs, NUTS, HMC...
+
+## Máxima verosimilitud
+
+```{r}
+#| echo: false
+#| fig-align: center
+#| fig-asp: .5
+
+library(ggplot2)
+set.seed(2025)
+# Valores de theta de 0 a 1
+theta <- seq(0, 1, 0.01)
+
+# Vector vacío para guardar la verosimilitud con cada theta
+likelihood <- vector(length = length(theta))
+
+# Lanzamientos de moneda
+coins <- rbinom(n = 30, size = 1, prob = .5)
+
+# Verosimilitud para cada theta
+for(i in 1:length(theta)){
+  likelihood[i] <- prod(dbinom(coins, size = 1, prob = theta[i]))
+}
+
+# Crear un data frame con los resultados
+datos <- data.frame(theta = theta, likelihood = likelihood)
+
+plot_ML <- ggplot(datos, aes(x = theta, y = likelihood)) +
+  geom_line(color = "#2C3E50", size = 1) +    # Línea elegante en color azul oscuro
+  geom_point(color = "steelblue2", size = 2) +   # Puntos en color rojo para destacar cada observación
+  labs(
+    title = "Verosimilitud del parámetro θ",
+    x = "Probabilidad de que la moneda salga 'cara' (θ)",
+    y = "Verosimilitud"
+  ) +
+  bayesplot::theme_default(base_size = 16) + 
+  theme(
+    plot.title = element_text(face = "bold", size = 20, hjust = 0.5),
+    axis.title = element_text(face = "bold", size = 18),
+    axis.text = element_text(size = 16),
+    panel.background = element_rect(fill = "#f1f1f1", colour = NA),
+    plot.background  = element_rect(fill = "#f1f1f1", colour = NA)
+  )  + 
+  # Añadir una línea horizontal que va desde x = 0 hasta x = theta[which.max(likelihood)]
+  annotate("segment", 
+           x = 0, 
+           xend = theta[which.max(likelihood)], 
+           y = max(likelihood), 
+           yend = max(likelihood),
+           color = "firebrick4", 
+           linetype = "dashed", 
+           size = 0.9) +
+  # Añadir una "X" en el punto de máxima verosimilitud
+  geom_point(data = data.frame(theta = theta[which.max(likelihood)], 
+                               likelihood = max(likelihood)),
+             aes(x = theta, y = likelihood),
+             shape = 4, 
+             color = "firebrick4", 
+             size = 4, 
+             stroke = 2)
+print(plot_ML)
+```
+
+## Máximos locales y absolutos
+
+```{r}
+#| echo: false
+#| fig-align: center
+#| fig-asp: .5
+#| warning: false
+
+# Definir valores en el eje X
+x <- seq(0, 1, length.out = 500)
+
+# Definir dos distribuciones Gaussianas con diferentes alturas y desviaciones estándar
+mean1 <- 0.3; std1 <- 0.05; height1 <- 0.5  # Pico más pequeño
+mean2 <- 0.7; std2 <- 0.08; height2 <- 1.0  # Pico más grande
+
+# Crear la función de verosimilitud bimodal
+likelihood <- height1 * exp(-((x - mean1) ^ 2) / (2 * std1 ^ 2)) + 
+              height2 * exp(-((x - mean2) ^ 2) / (2 * std2 ^ 2))
+
+# Convertir en data frame
+datos2 <- data.frame(x = x, likelihood = likelihood)
+
+# Encontrar máximos local y global
+max_global_x <- datos2$x[which.max(datos2$likelihood)]
+max_global_y <- max(datos2$likelihood)
+
+max_local_x <- datos2$x[which(datos2$likelihood == max(datos2$likelihood[datos2$x < 0.5]))]
+max_local_y <- max(datos2$likelihood[datos2$x < 0.5])
+
+# Crear la gráfica con líneas que terminan en los máximos
+p <- ggplot(datos2, aes(x = x, y = likelihood)) +
+  geom_line(color = "#2C3E50", size = 1) +  # Línea principal
+  geom_point(aes(x = max_global_x, y = max_global_y), color = "firebrick", shape = 4, size = 5, stroke = 2) +
+  geom_point(aes(x = max_local_x, y = max_local_y), color = "steelblue2", shape = 4, size = 5, stroke = 2) +
+  geom_segment(aes(x = max_global_x, xend = max_global_x, y = 0, yend = max_global_y),
+               linetype = "dashed", color = "firebrick", size = 1) +
+  geom_segment(aes(x = max_local_x, xend = max_local_x, y = 0, yend = max_local_y),
+               linetype = "dashed", color = "steelblue2", size = 1) +
+  labs(
+    title = "Ejemplo de Verosimilitud Bimodal",
+    x = "Valor del parámetro θ",
+    y = "Verosimilitud"
+  ) +
+  bayesplot::theme_default(base_size = 16) + 
+  theme(
+    plot.title = element_text(face = "bold", size = 20, hjust = 0.5),
+    axis.title = element_text(face = "bold", size = 18),
+    axis.text = element_text(size = 16),
+    panel.background = element_rect(fill = "#f1f1f1", colour = NA),
+    plot.background  = element_rect(fill = "#f1f1f1", colour = NA)
+  ) 
+
+print(p)
+```
+
+
+## Estimación Bayesiana: MCMC
+
+```{r}
+#| echo: false
+#| fig-align: center
+#| fig-asp: .5
+
+print(plot_ML)
+```
+
+## Estimación Bayesiana: MCMC
+
+```{r}
+#| echo: false
+#| fig-align: center
+#| fig-asp: .5
+
+# Crear el gráfico con área sombreada
+plot_MCMC <- ggplot(datos, aes(x = theta, y = likelihood)) +
+  geom_area(fill = "firebrick4", alpha = 0.5) +  # Relleno bajo la curva
+  geom_line(color = "#2C3E50", size = 1) +       # Línea de la verosimilitud
+    geom_point(color = "steelblue2", size = 2) +   # Puntos en color rojo para destacar cada observación
+  labs(
+    title = "Probabilidad posterior del parámetro θ",
+    x = "Probabilidad de que la moneda salga 'cara' (θ)",
+    y = "Probabilidad posterior"
+  ) +
+  bayesplot::theme_default(base_size = 16) + 
+  theme(
+    plot.title = element_text(face = "bold", size = 20, hjust = 0.5),
+    axis.title = element_text(face = "bold", size = 18),
+    axis.text = element_text(size = 16),
+    panel.background = element_rect(fill = "#f1f1f1", colour = NA),
+    plot.background  = element_rect(fill = "#f1f1f1", colour = NA)
+  )
+
+print(plot_MCMC)
+```
+
+## Estimación Bayesiana: MCMC
+
+![](MCMC_diapositivas/Diapositiva1.png)
+
+## Estimación Bayesiana: MCMC
+
+![](MCMC_diapositivas/Diapositiva2.png)
+
+## Estimación Bayesiana: MCMC
+
+![](MCMC_diapositivas/Diapositiva3.png)
+
+## Estimación Bayesiana: MCMC
+
+![](MCMC_diapositivas/Diapositiva4.png)
+
+## Estimación Bayesiana: MCMC
+
+![](MCMC_diapositivas/Diapositiva5.png)
+
+## Estimación Bayesiana: MCMC
+
+![](MCMC_diapositivas/Diapositiva6.png)
+
+## Estimación Bayesiana: MCMC
+
+![](MCMC_diapositivas/Diapositiva7.png)
+
+## Estimación Bayesiana: MCMC
+
+![](MCMC_diapositivas/Diapositiva8.png)
+
+## Estimación Bayesiana: MCMC
+
+![](MCMC_diapositivas/Diapositiva9.png)
+
+## Estimación Bayesiana: MCMC
+
+![](MCMC_diapositivas/Diapositiva10.png)
+
+## Estimación Bayesiana: MCMC
+
+![](MCMC_diapositivas/Diapositiva11.png)
+
+## Estimación Bayesiana: MCMC
+
+![](MCMC_diapositivas/Diapositiva12.png)
+
+## Estimación Bayesiana: MCMC
+
+- Los algoritmos bayesianos como el sampleador de Gibbs o Monte Carlo Hamiltoniano **difieren en cómo seleccionan las muestras.**
+  -   [Visualizador de algoritmos MCMC](https://chi-feng.github.io/mcmc-demo/app.html)
+
+- En el frecuentismo, el optimizador puede **no converger.** ¿Cuál es el equivalente a esto en Bayes?
+  - **Comparación entre varias cadenas de Markov** ajustadas a los mismos datos ($\hat R$).
+  - **Calidad de la distribución posterior** (tamaño muestral efectivo)
+  - Algunos algoritmos, como el Monte Carlo Hamiltoniano, tienen **métodos de diagnóstico más avanzados** para evaluar la convergencia.
+
+## Índices de ajuste:
+
+### Frecuentismo
+
+- Índices de ajuste absoluto: $\chi^2$, RMSEA, SRMR
+- Índices de ajuste relativo: CFI, TLI
+- Índices de información: AIC, BIC
+
+### Bayesiano
+
+- Distribuciones de ajuste absoluto: $\Gamma$, BRMSEA, BSRMR
+- Distribuciones de ajuste relativo: BCFI, BTLI
+- Índices de información: WAIC, DIC
+- **Posterior Predictive Model Checks.**
+
+## Comparación de modelos
+
+### Frecuentismo
+
+- Prueba de razón de verosimilitudes (LRT).
+- Incremento en RMSEA y CFI
+- Para **modelos anidados**
+
+### Bayesiano
+
+- Comparación de capacidad predictiva: K-fold, LOO
+- Comparación de verosimilitudes: factor de Bayes
+- Para **modelos anidados o no anidados**
+
+# Análisis Factorial Bayesiano en `R`: el paquete `{blavaan}` 
+
+## Modelo teórico
+
+![](images/SEM_diagram.png){width=80% height=80%}
+
+## Sintaxis del modelo
+
+-   `{lavaan}` y `{blavaan}` utilizan la misma sintaxis.
+-   Especificaremos dos modelos: uno con **dos factores** y otro con **tres factores**.
+
+::: fragment
+
+```{r}
+#| echo: true
+# Sintaxis del modelo: dos factores relacionados
+model.2f <- ' visual_text =~ x1 + x2 + x3 + x4 + x5 + x6 
+              speed =~ x7 + x8 + x9'
+# Sintaxis del modelo: tres factores relacionados
+HS.model <- ' visual  =~ x1 + x2 + x3
+              textual =~ x4 + x5 + x6
+              speed   =~ x7 + x8 + x9 '
+```
+
+- Para calcular `BCFI` y `BTLI`, necesitaremos especificar un modelo nulo (i.e., todas los ítems son independientes). `{blavaan}` **no lo hace por defecto**.
+
+:::
+
+::: fragment
+
+```{r}
+#| echo: true
+# Modelo nulo
+null.model <- paste0("x", 1:9, "~~", "x", 1:9, collapse = "\n")
+```
+
+::: 
+
+## Prior Predictive Check
+
+-   ¿Qué priors está utilizando `{blavaan}` para los parámetros del modelo?
+
+::: fragment
+```{r}
+#| echo: true
+#| eval: false
+# By-default prior distributions
+dpriors()
+```
+:::
+
+::: fragment
+```{r}
+# By-default prior distributions
+defpriors <- dpriors()
+dfpr <- data.frame(Parámetro = names(defpriors), priors = defpriors)
+dfpr$Parámetro <- sapply(dfpr$Parámetro, function(x) as.character(htmltools::HTML(paste0("\\(\\", x, "\\)"))))
+rownames(dfpr) <- NULL
+dfpr <- cbind(dfpr[c(1:3),], dfpr[c(5:7),])
+rownames(dfpr) <- NULL
+knitr::kable(x = dfpr, caption = "Distribución a priori de los parámetros del CFA", 
+             escape = TRUE, align = "cc", row.names = FALSE) %>% 
+  kableExtra::kable_styling(full_width = TRUE)
+```
+:::
+
+- Se pueden modificar sus valores, pero **no las distribuciones**
+- Se puede evaluar visualmente la distribución a priori utilizando `{blavaan}` o `R` base. 
+
+## Prior Predictive Check con `R` base
+
+```{r}
+#| echo: true
+#| eval: false
+#| code-line-numbers: "|1|"
+curve(dnorm(x, mean = 0, sd = 10), from = -50, to = 50, 
+      main = "Distribución a priori de Lambda",
+      xlab = "Valores de Lambda", ylab = "Densidad de probabilidad", lwd = 2)
+``` 
+
+```{r}
+#| echo: false
+#| fig-asp: .7
+par(bg = "#f1f1f1")
+curve(dnorm(x, mean = 0, sd = 10), from = -50, to = 50, 
+      main = "Distribución a priori de Lambda",
+      xlab = "Valores de Lambda", ylab = "Densidad de probabilidad", lwd = 2)
+``` 
+
+## Prior Predictive Check con `{blavaan}`
+
+::: fragment
+```{r}
+#| echo: true
+#| eval: false
+#| code-line-numbers: "|1-3|4-5|6|7|"
+# Base de datos con variables estandarizadas
+df <- HolzingerSwineford1939
+df[,paste0("x", 1:9)] <- apply(df[,paste0("x", 1:9)], 2, scale)
+# Ajusta un modelo "vacío" prisamp = TRUE!
+prior_predictive <- bcfa(model.2f, data = df, std.lv = TRUE, 
+                         meanstructure = TRUE, test = "none", sample = 20000, 
+                         prisamp = TRUE, bcontrol = list(cores = 3)) 
+```
+:::
+
+```{r}
+load("blavaan objects/blavaan_ppc1.rdata")
+```
+
+-   Acto seguido, podemos guardar la **distribución a priori** con la siguiente línea de código
+
+::: fragment
+```{r}
+#| echo: true
+# Guardamos la distribución a priori
+prior.draws <- blavInspect(prior_predictive, "mcmc")
+```
+:::
+
+-   Graficaremos las distribuciones con el paquete `{bayesplot}`
+
+## Prior predictive check: intersecciones
+
+```{r}
+#| echo: true
+#| eval: false
+
+# Prior predictive distribution: intersecciones
+mcmc_hist(x = prior.draws, regex_pars = paste0("x", 1:6, "~1"), alpha = .5)
+```
+
+```{r echo = FALSE}
+#| echo: false
+#| fig-align: center
+color_scheme_set("orange")
+mcmc_hist(x = prior.draws, regex_pars = paste0("x", 1:6, "~1"), alpha = .5) + theme(
+    panel.background = element_rect(fill = "#f1f1f1", colour = NA),
+    plot.background  = element_rect(fill = "#f1f1f1", colour = NA)
+  )
+```
+
+
+
+## Prior predictive check: pesos factoriales
+
+```{r}
+#| echo: true
+#| eval: false
+
+# Prior predictive distribution: intersecciones
+mcmc_hist(x = prior.draws, regex_pars = "visual_text=~", alpha = .5)
+```
+
+```{r echo = FALSE}
+#| echo: false
+#| fig-align: center
+color_scheme_set("blue")
+mcmc_hist(x = prior.draws, regex_pars = "visual_text=~", alpha = .5) + 
+  theme(
+    panel.background = element_rect(fill = "#f1f1f1", colour = NA),
+    plot.background  = element_rect(fill = "#f1f1f1", colour = NA)
+  )
+```
+
+## Prior predictive check: correlaciones latentes
+
+```{r}
+#| echo: true
+#| eval: false
+
+# Prior predictive distribution: intersecciones
+mcmc_hist(x = prior.draws, pars = "visual_text~~speed", alpha = .5)
+```
+
+```{r echo = FALSE}
+#| echo: false
+#| fig-align: center
+color_scheme_set("teal")
+mcmc_hist(x = prior.draws, pars = "visual_text~~speed", alpha = .5) + 
+  theme(
+    panel.background = element_rect(fill = "#f1f1f1", colour = NA),
+    plot.background  = element_rect(fill = "#f1f1f1", colour = NA)
+  )
+```
+
+## Prior predictive check: varianzas únicas
+
+```{r}
+#| echo: true
+#| eval: false
+
+# Prior predictive distribution: intersecciones
+mcmc_hist(x = prior.draws, pars = paste0("x", 1:6, "~~", "x", 1:6), alpha = .5)
+```
+
+```{r echo = FALSE}
+#| echo: false
+#| fig-align: center
+color_scheme_set("red")
+mcmc_hist(x = prior.draws, pars = paste0("x", 1:6, "~~", "x", 1:6), alpha = .5) + 
+  theme(
+    panel.background = element_rect(fill = "#f1f1f1", colour = NA),
+    plot.background  = element_rect(fill = "#f1f1f1", colour = NA)
+  )
+```
+
+## Cambiando la distribución prior
+
+-   **En** `{blavaan}` **no se puede cambiar la distribución a priori, sólo sus parámetros.**
+
+::: fragment
+```{r}
+#| echo: true
+#| eval: false
+#| code-line-numbers: "|1-2|3|4|5|9|"
+# Nueva distribución a priori
+new_priors <- dpriors(nu = "normal(0,1)", 
+                      lambda = "normal(0,1)", 
+                      rho = "beta(2,2)", 
+                      psi = "gamma(1,1)")
+# Muestreamos de la nueva distribución a priori
+new_prior_pred <- bcfa(model.2f, data = df, std.lv = TRUE, meanstructure = TRUE, 
+                       test = "none", sample = 20000, prisamp = TRUE,
+                       dp = new_priors,
+                       bcontrol = list(cores = 3)) 
+```
+
+```{r}
+load("blavaan objects/blavaan_ppc2.rdata")
+```
+:::
+
+-   Volvemos a extraer la distribución a priori
+
+::: fragment
+```{r}
+#| echo: true
+new.prior.draws <- blavInspect(new_prior_pred, "mcmc")
+```
+:::
+
+## Prior predictive check: intersecciones
+
+```{r}
+#| echo: true
+#| eval: false
+
+# Prior predictive distribution: intersecciones
+mcmc_hist(x = new.prior.draws, regex_pars = paste0("x", 1:6, "~1"), alpha = .5)
+```
+
+```{r echo = FALSE}
+#| echo: false
+#| fig-align: center
+color_scheme_set("orange")
+mcmc_hist(x = new.prior.draws, regex_pars = paste0("x", 1:6, "~1"), alpha = .5) + theme(
+    panel.background = element_rect(fill = "#f1f1f1", colour = NA),
+    plot.background  = element_rect(fill = "#f1f1f1", colour = NA)
+  )
+```
+
+
+
+## Prior predictive check: pesos factoriales
+
+```{r}
+#| echo: true
+#| eval: false
+
+# Prior predictive distribution: intersecciones
+mcmc_hist(x = new.prior.draws, regex_pars = "visual_text=~", alpha = .5)
+```
+
+```{r echo = FALSE}
+#| echo: false
+#| fig-align: center
+color_scheme_set("blue")
+mcmc_hist(x = new.prior.draws, regex_pars = "visual_text=~", alpha = .5) + 
+  theme(
+    panel.background = element_rect(fill = "#f1f1f1", colour = NA),
+    plot.background  = element_rect(fill = "#f1f1f1", colour = NA)
+  )
+```
+
+## Prior predictive check: correlaciones latentes
+
+```{r}
+#| echo: true
+#| eval: false
+
+# Prior predictive distribution: intersecciones
+mcmc_hist(x = new.prior.draws, pars = "visual_text~~speed", alpha = .5)
+```
+
+```{r echo = FALSE}
+#| echo: false
+#| fig-align: center
+color_scheme_set("teal")
+mcmc_hist(x = new.prior.draws, pars = "visual_text~~speed", alpha = .5) + 
+  theme(
+    panel.background = element_rect(fill = "#f1f1f1", colour = NA),
+    plot.background  = element_rect(fill = "#f1f1f1", colour = NA)
+  )
+```
+
+## Prior predictive check: varianzas únicas
+
+```{r}
+#| echo: true
+#| eval: false
+
+# Prior predictive distribution: intersecciones
+mcmc_hist(x = new.prior.draws, pars = paste0("x", 1:6, "~~", "x", 1:6), alpha = .5)
+```
+
+```{r echo = FALSE}
+#| echo: false
+#| fig-align: center
+color_scheme_set("red")
+mcmc_hist(x = new.prior.draws, pars = paste0("x", 1:6, "~~", "x", 1:6), alpha = .5) + 
+  theme(
+    panel.background = element_rect(fill = "#f1f1f1", colour = NA),
+    plot.background  = element_rect(fill = "#f1f1f1", colour = NA)
+  )
+```
+
+## Estimación del modelo
+
+-   Estimaremos los modelos de dos y tres factores **con las nuevas priors.**
+
+-   Utilizaremos **3 cadenas de Markov** con **1500 iteraciones**, descartando las primeras 500 iteraciones.
+
+-   `bcontrol` permite **paralelizar** las cadenas de Markov.
+
+::: fragment
+```{r}
+#| echo: true
+#| eval: false
+#| code-line-numbers: "|2-4|5-7|8-10|"
+# Estimate all the Bayesian models
+blavaan.null.fit <- bcfa(null.model, data = df, burnin = 500, sample = 1000, 
+                         meanstructure = TRUE, std.lv = TRUE, 
+                         bcontrol = list(cores = 3))
+blavaan.2f.fit <- bcfa(model.2f, data = df, burnin = 500, sample = 1000, 
+                       meanstructure = TRUE, std.lv = TRUE, 
+                       bcontrol = list(cores = 3))
+blavaan.HS.fit <- bcfa(HS.model, data = df, burnin = 500, sample = 1000,  
+                       meanstructure = TRUE, std.lv = TRUE, 
+                       bcontrol = list(cores = 3))
+```
+:::
+
+```{r}
+load(file = "blavaan objects/blavaan_null_fit.rdata")
+load(file = "blavaan objects/blavaan_2f_fit.rdata")
+load(file = "blavaan objects/blavaan_HS_fit.rdata")
+```
+
+## Convergencia del modelo
+
+-   La **validez** de las inferencias depende de la **convergencia** del modelo.
+-   *Potential Scale Reduction Factor* (PSRF, $\hat R$) con valores inferiores a 1.05
+
+::: fragment
+```{r}
+#| echo: true
+# Potential Scale Reduction Factor (PSRF): 2 factores
+which(blavInspect(blavaan.2f.fit, what = "rhat") > 1.05)
+# Potential Scale Reduction Factor (PSRF): 3 factores
+which(blavInspect(blavaan.HS.fit, what = "rhat") > 1.05)
+```
+:::
+
+-   Esto sugiere que las cadenas de Markov **están muestreando de la misma distribución posterior de manera estable.**
+
+## Convergencia del modelo
+
+-   Podemos **evaluar visualmente la convergencia de las cadenas de Markov** a través de los gráficos de trayectoria (**traceplots**).
+-   Para ello, necesitamos **extraer la distribución posterior** de los parámetros.
+
+::: fragment
+```{r}
+#| echo: true
+# Distribución posterior de ambos modelos
+posterior.2f <- blavInspect(blavaan.2f.fit, "mcmc")
+posterior.HS <- blavInspect(blavaan.HS.fit, "mcmc")
+```
+:::
+
+-   El siguiente código genera **traceplots** para los pesos factoriales
+
+::: fragment
+```{r}
+#| echo: true
+#| eval: false
+# Gráficos de trayectoria
+mcmc_trace(x = posterior.2f, regex_pars = "visual_text=~")
+mcmc_trace(x = posterior.HS, regex_pars = c("visual=~", "textual=~"))
+```
+:::
+
+## Convergencia del modelo
+
+```{r}
+mcmc_trace(x = posterior.2f, regex_pars = "visual_text=~") + 
+  theme(
+    panel.background = element_rect(fill = "#f1f1f1", colour = NA),
+    plot.background  = element_rect(fill = "#f1f1f1", colour = NA)
+  )
+```
+
+## Convergencia del modelo
+
+```{r}
+mcmc_trace(x = posterior.HS, regex_pars = c("visual=~", "textual=~")) + 
+  theme(
+    panel.background = element_rect(fill = "#f1f1f1", colour = NA),
+    plot.background  = element_rect(fill = "#f1f1f1", colour = NA)
+  )
+```
+
+
+## Convergencia del modelo
+
+-   ¿Qué aspecto tiene este gráfico cuando **la convergencia es mala**?
+
+::: fragment
+
+![](images/badchains2.png)
+
+:::
+
+## Convergencia del modelo
+
+-   Podemos destacar una de las cadenas para evaluar su desempeño.
+
+```{r}
+color_scheme_set("viridis")
+```
+
+::: fragment
+
+```{r}
+#| fig-align: center
+#| fig-asp: .4
+#| echo: true
+#| eval: false
+mcmc_trace_highlight(x = posterior.HS, regex_pars = "visual~~textual", highlight = 3)
+```
+
+:::
+
+::: fragment
+```{r}
+#| fig-align: center
+#| fig-asp: .4
+#| echo: false
+mcmc_trace_highlight(x = posterior.HS, regex_pars = "visual~~textual", 
+                     highlight = 3) + 
+  theme(
+    panel.background = element_rect(fill = "#f1f1f1", colour = NA),
+    plot.background  = element_rect(fill = "#f1f1f1", colour = NA)
+  )
+```
+:::
+
+## Eficiencia
+
+-   Los valores de los parámetros de iteración a iteración suelen estar correlacionados.
+-   Cuanto **menor sea su correlación**, **más informativo será el valor** en cada muestra.
+-   Se evalúa a través del **tamaño muestral efectivo**.
+    -   Valor mínimo recomendable: $100\times$ Nº de cadenas de Markov.
+
+::: fragment
+```{r}
+#| echo: true
+min(blavInspect(blavaan.2f.fit, "neff"))
+min(blavInspect(blavaan.HS.fit, "neff"))
+```
+:::
+
+## Ajuste del modelo
+
+-   Similares a los índices de ajuste frecuentistas, ¡pero **con intervalos de credibilidad**!
+-   **Índices Bayesianos de ajuste global**
+    -   *Bayesian Root Mean Square Error of Approximation* (BRMSEA)
+    -   *Bayesian Unbiased Goodnes-of-fit Index* ($\Gamma$)
+    -   *Bayesian Unbiased Goodnes-of-fit Index* ajustado a muestras pequeñas ($\Gamma_{adj}$)
+    -   *Bayesian McDonald Index* (BMc)
+-   **Índices Bayesianos de ajuste incremental**
+    -   *Bayesian Comparative Fit Index* (BCFI)
+    -   *Bayesian Tucker-Lewis Index* (BTLI)
+
+## Ajuste del modelo: dos factores
+
+```{r}
+#| warning: false
+#| eval: false
+#| echo: true
+#| code-line-numbers: "|1-2|3|"
+
+# Indices de ajuste: dos factores
+blav_fit_2f <- blavFitIndices(object = blavaan.2f.fit, baseline.model = blavaan.null.fit)
+summary(blav_fit_2f, hpd = TRUE, prob = .95, central.tendency = c("mean","median","mode"))
+```
+
+::: fragment
+```{r}
+#| warning: false
+#| echo: false
+#| eval: true
+blav_fit_2f <- blavFitIndices(object = blavaan.2f.fit, 
+                              baseline.model = blavaan.null.fit)
+df_fit <- as.data.frame(summary(blav_fit_2f, hpd = TRUE, prob = .95,
+        central.tendency = c("mean","median","mode")))
+for(j in 1:ncol(df_fit)){
+  df_fit[,j] <- round(df_fit[,j], 3)
+}
+```
+:::
+
+::: fragment
+
+| Índice                   | EAP | Mediana | MAP     |   SD posterior | 95% IC      |
+|:-------------|:---:|:-------:|:-------:|:---------:|:--------|
+|BRMSEA                    |0.15 |   0.15  |0.14     |0.004           | [0.14, 0.15]|
+|$\hat\Gamma$              |0.90 |   0.90  |0.90     |0.005           | [0.89, 0.90]|
+|$\hat\Gamma_{\text{adj}}$ |0.77 |   0.77  |0.77     |0.010           | [0.75, 0.79]|
+|BMc                       |0.77 |   0.77  |0.78     |0.010           | [0.75, 0.79]|
+|BCFI                      |0.82 |   0.82  |0.83     |0.009           | [0.80, 0.84]|
+|BTLI                      |0.74 |   0.74  |0.74     |0.010           | [0.71, 0.76]|
+|BNFI                      |0.80 |   0.80  |0.81     |0.008           | [0.79, 0.82]|
+
+: Distribución posterior de los índices de ajuste Bayesianos
+
+:::
+
+## Ajuste del modelo: dos factores
+
+```{r}
+#| warning: false
+#| eval: false
+#| fig-align: center
+#| echo: true
+mcmc_hist(data.frame(blav_fit_2f@indices), alpha = 0.5,
+          pars = c("BRMSEA", "BCFI", "BTLI", "BGammaHat"))
+```
+
+```{r}
+#| echo: false
+color_scheme_set("green")
+mcmc_hist(data.frame(blav_fit_2f@indices), alpha = 0.5,
+          pars = c("BRMSEA", "BCFI", "BTLI", "BGammaHat")) + 
+  theme(
+    panel.background = element_rect(fill = "#f1f1f1", colour = NA),
+    plot.background  = element_rect(fill = "#f1f1f1", colour = NA)
+  ) 
+```
+
+## Ajuste del modelo: tres factores
+
+```{r}
+#| warning: false
+#| eval: false
+#| echo: true
+#| code-line-numbers: "|1-2|3|"
+
+# Indices de ajuste: tres factores
+blav_fit_HS <- blavFitIndices(object = blavaan.HS.fit, baseline.model = blavaan.null.fit)
+summary(blav_fit_HS, hpd = TRUE, prob = .95, central.tendency = c("mean","median","mode"))
+```
+
+::: fragment
+```{r}
+#| warning: false
+#| echo: false
+#| eval: true
+blav_fit_HS <- blavFitIndices(object = blavaan.HS.fit, 
+                              baseline.model = blavaan.null.fit)
+df_fit <- as.data.frame(summary(blav_fit_HS, hpd = TRUE, prob = .95,
+        central.tendency = c("mean","median","mode")))
+for(j in 1:ncol(df_fit)){
+  df_fit[,j] <- round(df_fit[,j], 3)
+}
+# insight::export_table(df_fit, format = "md")
+```
+:::
+
+::: fragment
+
+| Índice                   | EAP | Mediana | MAP     |   SD posterior | 95% IC      |
+|:-------------|:---:|:-------:|:-------:|:---------:|:--------|
+|BRMSEA                    |0.10 |   0.10  |0.10     |0.006           | [0.09, 0.11]|
+|$\hat\Gamma$              |0.96 |   0.96  |0.96     |0.005           | [0.95, 0.97]|
+|$\hat\Gamma_{\text{adj}}$ |0.89 |   0.89  |0.89     |0.010           | [0.86, 0.91]|
+|BMc                       |0.90 |   0.90  |0.90     |0.010           | [0.88, 0.92]|
+|BCFI                      |0.93 |   0.93  |0.93     |0.009           | [0.91, 0.95]|
+|BTLI                      |0.88 |   0.88  |0.88     |0.010           | [0.85, 0.91]|
+|BNFI                      |0.91 |   0.91  |0.91     |0.006           | [0.89, 0.93]|
+
+: Distribución posterior de los índices de ajuste Bayesianos
+
+:::
+
+## Ajuste del modelo: tres factores
+
+```{r}
+#| warning: false
+#| eval: false
+#| fig-align: center
+#| echo: true
+mcmc_hist(data.frame(blav_fit_HS@indices), alpha = 0.5,
+          pars = c("BRMSEA", "BCFI", "BTLI", "BGammaHat"))
+```
+
+```{r}
+#| echo: false
+color_scheme_set("brightblue")
+mcmc_hist(data.frame(blav_fit_HS@indices), alpha = 0.5,
+          pars = c("BRMSEA", "BCFI", "BTLI", "BGammaHat")) + 
+  theme(
+    panel.background = element_rect(fill = "#f1f1f1", colour = NA),
+    plot.background  = element_rect(fill = "#f1f1f1", colour = NA)
+  ) 
+```
+
+
+## Ajuste del modelo: ¿qué hacemos con TLI?
+
+- Como TLI **es una distribución**, podemos responder **preguntas probabilísticas.**
+- **¿Cuál es la probabilidad de que TLI** $\geq0.90$**?**
+
+::: fragment
+```{r}
+#| echo: true
+# Calculamos la función empírica de probabilidad acumulada
+TLI_ppost <- ecdf(blav_fit_HS@indices$BTLI)
+1 - TLI_ppost(v = 0.90) # Probabilidad de que TLI sea mayor o igual a 0.90
+# Intervalo de credibilidad al 95%
+quantile(blav_fit_HS@indices$BTLI, probs = c(.025, .975))
+```
+:::
+
+- **¿Cuál es la probabilidad de que CFI** $\leq0.90$**?**
+
+::: fragment
+```{r}
+#| echo: true
+CFI_ppost <- ecdf(blav_fit_HS@indices$BCFI)
+CFI_ppost(v = 0.90) # Probabilidad de que CFI sea menor a 0.90
+```
+:::
+
+## Comparación de modelos
+
+- `{blavaan}` incluye dos métodos para comparar modelos:
+1. Métodos basados en la **capacidad predictiva del modelo:**
+    - *Leave-One-Out* (LOO) *cross-validation*.
+    - *Watanabee-Akaike Information Criteria* (WAIC).
+    - Ambos incluidos en el paquete `{loo}`.
+    - Cuentan con **pruebas de significacion.**
+2. Métodos basados en la **capacidad explicativa del modelo:**
+    - Factor de Bayes (aproximación de Laplace-Metrópolis).
+    - `{blavaan}` no recomienda su uso.
+
+## Comparación de modelos
+
+- La función `blavCompare` calcula el WAIC y el $\text{ELPD}_\text{loo}$, una versión más robusta del WAIC. 
+
+::: fragment
+
+```{r}
+#| code-line-numbers: "|1-2|3-5|"
+#| echo: true
+#| eval: false
+# Comparación de modelos
+blav_com_2f_HS <- blavCompare(object1 = blavaan.2f.fit, object2 = blavaan.HS.fit)
+# PSIS-Leave-One-Out: 
+blavaan_com_2f_HS$loo[[1]] # modelo de dos factores
+blav_com_2f_HS$loo[[2]] # modelo de tres factores
+```
+
+::: 
+
+\
+
+::: fragment
+```{r}
+load(file = "blavaan objects/blav_com_2f_HS.rdata")
+elpd_1f <- blav_com_2f_HS$loo[[1]]$estimates
+elpd_2f <- blav_com_2f_HS$loo[[2]]$estimates
+elpd_df <- cbind(elpd_1f, elpd_2f)
+colnames(elpd_df) <- c("Estimación", "Error típico", "Estimación", "Error típico")
+knitr::kable(elpd_df, digits = 3, booktabs = TRUE, align = "cccc") |> 
+  kableExtra::kable_styling(full_width = TRUE) |> 
+  kableExtra::add_header_above(header = c(" " = 1, "Dos factores"=2, "Tres factores"=2))
+```
+:::
+
+## Comparación de modelos
+
+- La diferencia entre los $\text{ELPD}_\text{loo}$ de ambos modelos, $\Delta\text{ELPD}_\text{loo}$,  permite determinar **cuál de los dos tiene mejor capacidad para predecir los datos observados.**
+
+::: fragment
+```{r}
+#| echo: true
+# Comparación de ELPDs
+blav_com_2f_HS$diff_loo
+```
+:::
+
+-   `Model2` es el modelo que hemos indicado previamente en `object 2`
+
+::: fragment
+```{r}
+#| echo: true
+#| eval: false
+# Comparación de modelos
+blav_com_2f_HS <- blavCompare(object1 = blavaan.2f.fit, object2 = blavaan.HS.fit)
+```
+:::
+
+-   Por tanto, **el modelo de tres factores tiene mejor capacidad predictiva que el de dos factores** porque la diferencia $\Delta\mbox{ELPD} = -45.3$ está fuera del rango $\pm 2 \times 12$.
+
+## Parámetros estimados: pesos factoriales
+
+|Factor  |Variable|  Parametro   | Estimación |  SD |        95% IC |$\hat R$|        ESS|
+|:-------|:------:|:------------:|:----------:|:---:|:-------------:|:----:|--------:|
+|visual  |      x1|$\lambda_{11}$|        0.78|0.08 |   [0.63, 0.93]|1.001 |     2252.00|
+|visual  |      x2|$\lambda_{21}$|        0.42|0.07 |   [0.29, 0.56]|1.000 |     3547.00|
+|visual  |      x3|$\lambda_{31}$|        0.58|0.07 |   [0.44, 0.73]|1.001 |     3289.00|
+|textual |      x4|$\lambda_{12}$|        0.86|0.05 |   [0.77, 0.96]|1.000 |     3104.00|
+|textual |      x5|$\lambda_{22}$|        0.86|0.05 |   [0.77, 0.96]|1.000 |     3163.00|
+|textual |      x6|$\lambda_{32}$|        0.85|0.05 |   [0.75, 0.94]|1.000 |     3087.00|
+|speed   |      x7|$\lambda_{13}$|        0.57|0.07 |   [0.43, 0.70]|1.000 |     2318.00|
+|speed   |      x8|$\lambda_{23}$|        0.72|0.08 |   [0.57, 0.88]|1.001 |     2241.00|
+|speed   |      x9|$\lambda_{33}$|        0.67|0.08 |   [0.53, 0.85]|1.000 |     2016.00|
+
+: Estimaciones de $\lambda$ estandarizadas
+
+## Parámetros estimados: pesos factoriales
+
+```{r}
+#| fig-align: center
+#| eval: false
+#| echo: true
+mcmc_intervals(posterior.HS, regex_pars = c("visual=~", "textual=~", "speed=~"),  
+               prob = 0.8, prob_outer = 0.95, point_est = "median")
+```
+
+::: fragment
+
+```{r}
+#| fig-align: center
+color_scheme_set("blue")
+# Posterior distribution: pairs plots
+mcmc_intervals(posterior.HS, regex_pars = c("visual=~", "textual=~", "speed=~"),  
+           prob = 0.8, prob_outer = 0.95, point_est = "median") + 
+  theme(
+    panel.background = element_rect(fill = "#f1f1f1", colour = NA),
+    plot.background  = element_rect(fill = "#f1f1f1", colour = NA)
+  )  
+```
+
+::: 
+
+
+## Parámetros estimados: correlaciones latentes
+
+|Factor 1 |Factor 2 |Parametro  | Estimación |  SD |        95% IC |$\hat R$|    ESS|
+|:--------|:--------|:---------:|:----------:|:---:|:-------------:|:----:|--------:|
+|visual   | textual |$\rho_{12}$|  0.45      |0.06 |   [0.31, 0.57]|1.000 |  3947.00|
+|visual   | speed   |$\rho_{13}$|  0.46      |0.08 |   [0.30, 0.62]|1.000 |  2261.00|
+|textual  | speed   |$\rho_{23}$|  0.08      |0.07 |   [0.14, 0.41]|1.000 |  4158.00|
+
+: Estimaciones de $\rho$ entre factores latentes
+
+## Parámetros estimados: correlaciones latentes
+
+```{r}
+#| fig-align: center
+#| eval: false
+#| echo: true
+mcmc_areas(posterior.HS, regex_pars = c("visual~~", "textual~~", "speed~~"),  
+           prob = 0.8, prob_outer = 0.95, point_est = "median")
+```
+
+::: fragment
+
+```{r}
+#| fig-align: center
+color_scheme_set("teal")
+# Posterior distribution: pairs plots
+mcmc_areas(posterior.HS, regex_pars = c("visual~~", "textual~~", "speed~~"),  
+           prob = 0.8, prob_outer = 0.95, point_est = "median") + 
+  theme(
+    panel.background = element_rect(fill = "#f1f1f1", colour = NA),
+    plot.background  = element_rect(fill = "#f1f1f1", colour = NA)
+  )  
+```
+
+::: 
+
+## Posterior Predictive Model Checks (PPMC)
+
+-   Método para evaluar la capacidad predictiva de un modelo.
+-   La idea central es **verificar si el model puede generar datos similares a los datos observados.**
+-   ¿Podemos distinguir los **datos observados** de **datos simulados desde el modelo**?
+-   En `{blavaan}` podemos utilizar la función `sampleData` para generar datos desde el modelo.
+-   Tras simularlo, se **comparan gráficamente** los datos observados y simulados
+-   Finalmente, podemos ver el parecido entre $y$ con $y^{\text{rep}}$
+
+## Posterior Predictive Model Checks: $y^{\text{rep}}$
+
+::: fragment
+
+```{r eval = FALSE}
+#| code-line-numbers: "|1-2|3-4|5-6|7|8-10|11|13-14|"
+#| echo: true
+# Simulamos 100 bases de datos
+yrep <- sampleData(bcfa.HS.fit, nrep = 100, simplify = TRUE)
+# Guardamos las respuestas de los ítems en un data frame a parte
+Y <- df[,7:15]
+# Guardamos los resultados para cada item
+posterior_plots_list <- vector(mode = "list", length = ncol(Y))
+for(i in 1:ncol(Y)){
+  posterior_plots_list[[i]] <- ppc_dens_overlay(
+    y = Y[,i], yrep = t(sapply(yrep, function(x) x[,i]))
+    ) + 
+    labs(title = paste("Item", i))
+}
+# Gráfico comparando y e yrep
+cowplot::plot_grid(plotlist = posterior_plots_list)
+```
+
+::: 
+
+## Posterior Predictive Model Checks: $y^{\text{rep}}$
+
+```{r echo = FALSE}
+#| fig-align: center
+# Simulamos 100 bases de datos
+yrep <- sampleData(blavaan.HS.fit, nrep = 100, simplify = TRUE)
+df <- lavaan::HolzingerSwineford1939
+Y <- df[,7:15]
+Y <- apply(Y,2,scale)
+# Guardamos los resultados para cada item
+posterior_plots_list <- vector(mode = "list", length = ncol(Y))
+for(i in 1:ncol(Y)){
+  posterior_plots_list[[i]] <- ppc_dens_overlay(
+    y = Y[,i], yrep = t(sapply(yrep, function(x) x[,i]))
+    ) + 
+    labs(title = paste("Item", i))
+}
+# Gráfico comparando y e yrep
+cowplot::plot_grid(plotlist = posterior_plots_list) + 
+  theme(
+    panel.background = element_rect(fill = "#f1f1f1", colour = NA),
+    plot.background  = element_rect(fill = "#f1f1f1", colour = NA)
+  ) 
+```
+
+## Posterior Predictive Model Checks (PPMC)
+
+### Una iteración
+
+- Tenemos $\color{#0197FD}{\boldsymbol{\nu}^{(1)}}$ y $\color{#0197FD}{\mathbf{\Sigma^{(1)}}} = \mathbf{\Lambda^{(1)}}\cdot\mathbf{\Psi^{(1)}}\cdot\mathbf{\Lambda^{\prime(1)}} + \mathbf{\Theta^{(1)}}$
+- Calculamos $\chi^{2(1)}$: $\text{Cov}(\mathbf{Y}) - \color{#0197FD}{\mathbf{\Sigma^{(1)}}}$
+- **Simulamos datos utilizando estos parámetros:** $\mathbf{Y}_{\text{sim}}^{(1)}$
+
+::: fragment
+
+$$
+\color{seagreen}{\mathbf{y}_i}  \sim \color{#7E57C2}{\mathcal{MVN}}\left(\color{#9a2515}{\boldsymbol\mu} = \color{#0197FD}{\boldsymbol\nu^{(1)}} ,\,\color{#9a2515}{\mathbf{\Sigma}} =  \color{#0197FD}{\mathbf{\Sigma^{(1)}}}\right)
+$$
+
+:::
+
+- Calculamos $\chi^{2(1)}_\text{sim}$: $\text{Cov}\left(\mathbf{Y}_{\text{sim}}^{(1)}\right) - \color{#0197FD}{\mathbf{\Sigma^{(1)}}}$
+
+- Comparamos la distribución de $\chi^{2(1)}$ y $\chi^{2(1)}_\text{sim}$.
+
+## Posterior Predictive Model Checks (PPMC)
+
+```{r}
+load("blavaan objects/ppmc_objects.rdata")
+load("blavaan objects/posterior_checks_2f.rdata")
+load("blavaan objects/posterior_checks_HS.rdata")
+```
+
+```{r}
+par(bg = "#f1f1f1")
+plot(ppmc_objects$posterior_checks_2f, element = "chisq")
+```
+
+## Posterior Predictive Model Checks (PPMC)
+
+```{r}
+par(bg = "#f1f1f1")
+hist(ppmc_objects$posterior_checks_2f, element = "chisq")
+```
+
+## Posterior Predictive Model Checks (PPMC)
+
+-   El PPMC puede aplicarse a cualquier estadístico.
+-   Durante la estimación, en cada iteración:
+    1.  Se **extrae una muestra** de los parámetros $\theta^{(s)}$ de la **distribución posterior** (esto lo hacemos **siempre**).
+    2.  Se utilizan estos parámetros para **generar datos simulados**: $\mathbf{Y}_{\text{sim}}$.
+    3.  Se **calcula algún estadístico** de interés en $\mathbf{Y}$ e $\mathbf{Y}_{\text{sim}}$.
+    4.  Se **compara la distribución del estadístico** entre $\mathbf{Y}$ e $\mathbf{Y}_{\text{sim}}$.
+-   En `{blavaan}` pueden realizarse con la función `ppmc`
+
+
+::: fragment
+
+```{r}
+#| echo: true
+#| eval: false
+#| code-line-numbers: "|2|3|"
+# Posterior Predictive Model Checks
+ppmc_fit_2f <- ppmc(object = bcfa.2f.fit, thin = 1, fit.measures = c("srmr","chisq"))
+ppmc_fit_HS <- ppmc(object = bcfa.HS.fit, thin = 1, fit.measures = c("srmr","chisq"))
+```
+
+:::
+
+## Posterior Predictive Model Checks (PPMC): χ²
+
+```{r}
+#| eval: false
+plot(ppmc_fit_HS, element = "chisq") # Dos factores
+```
+
+::: fragment
+
+```{r}
+par(bg = "#f1f1f1")
+plot(posterior_checks_HS, element = "chisq")
+```
+
+:::
+
+## Posterior Predictive Model Checks (PPMC): χ²
+
+```{r}
+#| eval: false
+hist(ppmc_fit_HS, element = "chisq") # Dos factores
+```
+
+::: fragment
+
+```{r}
+par(bg = "#f1f1f1")
+hist(posterior_checks_HS, element = "chisq")
+```
+
+:::
+
+
+## Posterior Predictive Model Checks (PPMC): χ²
+
+```{r}
+#| eval: false
+plot(ppmc_fit_2f, element = "chisq") # Dos factores
+```
+
+::: fragment
+
+```{r}
+par(bg = "#f1f1f1")
+plot(posterior_checks_2f, element = "chisq")
+```
+
+:::
+
+## Posterior Predictive Model Checks (PPMC): χ²
+
+```{r}
+#| eval: false
+hist(ppmc_fit_2f, element = "chisq") # Dos factores
+```
+
+::: fragment
+
+```{r}
+par(bg = "#f1f1f1")
+hist(posterior_checks_2f, element = "chisq")
+```
+
+:::
+
+
+## Posterior Predictive Model Checks (PPMC): SRMR
+
+```{r}
+#| eval: false
+plot(ppmc_fit_HS, element = "srmr") # Dos factores
+```
+
+::: fragment
+
+```{r}
+par(bg = "#f1f1f1")
+plot(posterior_checks_HS, element = "srmr")
+```
+
+:::
+
+## Posterior Predictive Model Checks (PPMC): SRMR
+
+```{r}
+#| eval: false
+hist(ppmc_fit_HS, element = "srmr") # Dos factores
+```
+
+::: fragment
+
+```{r}
+par(bg = "#f1f1f1")
+hist(posterior_checks_HS, element = "srmr")
+```
+
+:::
+
+
+## Posterior Predictive Model Checks (PPMC): SRMR
+
+```{r}
+#| eval: false
+plot(ppmc_fit_2f, element = "srmr") # Dos factores
+```
+
+::: fragment
+
+```{r}
+par(bg = "#f1f1f1")
+plot(posterior_checks_2f, element = "srmr")
+```
+
+:::
+
+## Posterior Predictive Model Checks (PPMC): SRMR
+
+```{r}
+#| eval: false
+hist(ppmc_fit_2f, element = "srmr") # Dos factores
+```
+
+::: fragment
+
+```{r}
+par(bg = "#f1f1f1")
+hist(posterior_checks_2f, element = "srmr")
+```
+
+:::
+
+
+## PPMC y Fiabilidad: ω
+
+-   Podemos utilizar `ppmc` con **[cualquier función que pueda utilizarse para un modelo de `{lavaan}`]{.underline}.**
+-   Podemos utilizar `compRelSEM` de `{SemTools}` para obtener la distribución posterior de $\omega$.
+
+::: fragment
+
+```{r}
+#| eval: false
+#| echo: true
+#| code-line-numbers: "|1-2|3-4|5-6|"
+# Función para obtener la fiabilidad en cada iteración
+bcfa.reliability <- function(fit){ semTools::compRelSEM(fit) }
+# Fiabilidad en el modelo unidimensional
+ppmc_omega_2f <- ppmc(object = blavaan.2f.fit, discFUN = bcfa.reliability)
+# Fiabilidad en el modelo de dos factores
+ppmc_omega_HS <- ppmc(object = blavaan.HS.fit, discFUN = bcfa.reliability)
+# La distribución posterior se guarda aquí
+posterior_omega_HS@obsDist$discFUN1
+```
+
+::: 
+
+## PPMC y Fiabilidad: ω
+
+```{r}
+load("blavaan objects/posterior_omega_2f.rdata")
+load("blavaan objects/posterior_omega_HS.rdata")
+
+# Posterior distribution: 2 factors
+omega.2f <- do.call(rbind, posterior_omega_2f@obsDist$discFUN1)
+
+par(mfrow=c(1,2), bg = "#f1f1f1")
+hist(omega.2f[,1], breaks = 30, 
+     xlab = "Fiabilidad", ylab = "Densidad", 
+     main = "Fiabilidad: visual_text", 
+     col = "peachpuff")
+hist(omega.2f[,2], breaks = 30, 
+     xlab = "Fiabilidad", ylab = " ", 
+     main = "Fiabilidad: speed", 
+     col = "lightgreen")
+par(mfrow=c(1,1))
+```
+
+
+## PPMC y Fiabilidad: ω
+
+```{r}
+# Posterior distribution: 3 factors
+omega.HS <- do.call(rbind, posterior_omega_HS@obsDist$discFUN1)
+par(mfrow=c(1,3), bg = "#f1f1f1")
+hist(omega.HS[,1], breaks = 30, 
+     xlab = "Fiabilidad", ylab = "Densidad", 
+     main = "Fiabilidad: visual", 
+     col = "peachpuff")
+hist(omega.HS[,2], breaks = 30, 
+     xlab = "Fiabilidad", ylab = "Densidad", 
+     main = "Fiabilidad: textual", 
+     col = "lightblue")
+hist(omega.HS[,3], breaks = 30, 
+     xlab = "Fiabilidad", ylab = " ", 
+     main = "Fiabilidad: speed", 
+     col = "lightgreen")
+par(mfrow=c(1,1))
+```
+
+# Conclusión
+
+## Psicometría Bayesiana
+
+### Únete al lado oscuro de la fuerza
+
+1. Está emergiendo con más fuerza que nunca. 
+2. Es un marco de trabajo **coherente**.
+3. Ideal para muestras pequeñas (i.e., $N=70$).
+4. Incertidumbre en cualquier parámetro. 
+5. En última instancia, es **frecuentismo liberado**.
+6. **Puedes especificar y ajustar cualquier modelo que puedas imaginar.**
+
+::: fragment
+
+$$
+\color{seagreen}{\mathbf{y}_i}  \sim \color{#7E57C2}{\mathcal{MVN}}\left(\color{#9a2515}{\boldsymbol\mu} = \color{#0197FD}{\boldsymbol\nu} + \color{#0197FD}{\mathbf{\Lambda}} \cdot \color{#0197FD}{\boldsymbol{\alpha}},\,\color{#9a2515}{\mathbf{\Sigma}} =  \color{#0197FD}{\mathbf{\Lambda}}\cdot\color{#0197FD}{\mathbf\Psi}\cdot\color{#0197FD}{\mathbf{\Lambda}^\prime} + \color{#0197FD}{\mathbf{\Theta}}\right)
+$$
+:::
+
+## Referencias
+
+::: {#refs}
+:::
+
